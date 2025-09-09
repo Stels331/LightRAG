@@ -1882,5 +1882,7 @@ primaryClass={cs.IR}
       <span style="color: #00d9ff; font-size: 18px;">Thank you for visiting LightRAG!</span>
       <span style="font-size: 24px;">⭐</span>
     </div>
+
+    
   </div>
 </div>
