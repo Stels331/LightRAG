@@ -3,61 +3,51 @@ FROM python:3.12-slim AS builder
 
 WORKDIR /app
 
-# Upgrade pip、setuptools and wheel to the latest version
+# Upgrade pip, setuptools and wheel to the latest version
 RUN pip install --upgrade pip setuptools wheel
 
-# Install Rust and required build dependencies
+# Install build dependencies that might be needed for some packages
 RUN apt-get update && apt-get install -y \
-    curl \
     build-essential \
-    pkg-config \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-    && . $HOME/.cargo/env
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Copy pyproject.toml and source code for dependency installation
+# Install Rust, as some Python libraries use it for performance
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# --- КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ ---
+# Сначала копируем все файлы, необходимые для сборки
 COPY pyproject.toml .
 COPY setup.py .
 COPY lightrag/ ./lightrag/
 
-# Install dependencies
-ENV PATH="/root/.cargo/bin:${PATH}"
-RUN pip install --user --no-cache-dir --use-pep517 .
-RUN pip install --user --no-cache-dir --use-pep517 .[api]
-
-# Install depndencies for default storage
-RUN pip install --user --no-cache-dir nano-vectordb networkx
-# Install depndencies for default LLM
-RUN pip install --user --no-cache-dir openai ollama tiktoken
-# Install depndencies for default document loader
-RUN pip install --user --no-cache-dir pypdf2 python-docx python-pptx openpyxl
+# Теперь, когда все файлы на месте, устанавливаем проект
+# Устанавливаем в пользовательскую директорию, чтобы легко скопировать в финальный образ
+RUN pip install --user --no-cache-dir .[api]
 
 # Final stage
 FROM python:3.12-slim
 
 WORKDIR /app
 
-# Upgrade pip and setuptools
-RUN pip install --upgrade pip setuptools wheel
-
-# Copy only necessary files from builder
+# Копируем только установленные пакеты из builder-стадии
 COPY --from=builder /root/.local /root/.local
-COPY ./lightrag ./lightrag
-COPY setup.py .
 
-RUN pip install --use-pep517 ".[api]"
-# Make sure scripts in .local are usable
+# Добавляем установленные пакеты в PATH, чтобы можно было запустить lightrag-server
 ENV PATH=/root/.local/bin:$PATH
 
-# Create necessary directories
+# Создаем директории для данных
 RUN mkdir -p /app/data/rag_storage /app/data/inputs
 
-# Docker data directories
+# Устанавливаем переменные окружения для этих директорий
 ENV WORKING_DIR=/app/data/rag_storage
 ENV INPUT_DIR=/app/data/inputs
 
-# Expose the default port
-EXPOSE 9621
+# Railway требует, чтобы порт был прослушан внутри контейнера
+# Lightrag по умолчанию использует 8000, но мы можем указать его явно
+EXPOSE 8000
+ENV PORT=8000
 
-# Set entrypoint
-ENTRYPOINT ["python", "-m", "lightrag.api.lightrag_server"]
+# Правильная команда для запуска сервера
+CMD ["lightrag-server"]
