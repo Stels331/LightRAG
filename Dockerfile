@@ -59,5 +59,6 @@ ENV INPUT_DIR=/app/data/inputs
 # Railway требует фиксированный порт внутри контейнера
 EXPOSE 8000
 
-# Запускаем сервер на 0.0.0.0:8000
-CMD ["python", "-m", "lightrag.api.lightrag_server", "--host", "0.0.0.0", "--port", "8000"]
+# Запускаем FastAPI через uvicorn (надёжно)
+CMD ["uvicorn", "lightrag.api.lightrag_server:app", "--host", "0.0.0.0", "--port", "8000"]
+
