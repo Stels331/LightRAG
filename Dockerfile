@@ -56,8 +56,9 @@ RUN mkdir -p /app/data/rag_storage /app/data/inputs
 ENV WORKING_DIR=/app/data/rag_storage
 ENV INPUT_DIR=/app/data/inputs
 
-# Expose the default port
-EXPOSE 9621
+# Expose Railway port
+EXPOSE $PORT
 
-# Set entrypoint
-ENTRYPOINT ["python", "-m", "lightrag.api.lightrag_server"]
+# Start server with Railway port
+CMD ["python", "-m", "lightrag.api.lightrag_server"]
+
