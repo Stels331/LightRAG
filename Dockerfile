@@ -44,6 +44,7 @@ RUN pip install --upgrade pip setuptools wheel
 COPY --from=builder /root/.local /root/.local
 COPY ./lightrag ./lightrag
 COPY setup.py .
+COPY start.py .
 
 RUN pip install --use-pep517 ".[api]"
 # Make sure scripts in .local are usable
