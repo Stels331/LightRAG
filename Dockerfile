@@ -60,5 +60,5 @@ ENV INPUT_DIR=/app/data/inputs
 EXPOSE 8000
 
 # Запускаем FastAPI через uvicorn (надёжно)
-CMD ["uvicorn", "lightrag.api.lightrag_server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "start.py"]
 
