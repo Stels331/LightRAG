@@ -56,9 +56,10 @@ RUN mkdir -p /app/data/rag_storage /app/data/inputs
 ENV WORKING_DIR=/app/data/rag_storage
 ENV INPUT_DIR=/app/data/inputs
 
-# Expose Railway port
-EXPOSE $PORT
+# Expose Railway dynamic port
+EXPOSE 8000
 
-# Start server with Railway port
-CMD ["python", "-m", "lightrag.api.lightrag_server"]
+# Start server with Railway PORT
+CMD ["python", "-m", "lightrag.api.lightrag_server", "--host", "0.0.0.0", "--port", "8000"]
+
 
